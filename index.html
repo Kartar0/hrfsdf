@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi-Frame Media Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind CSS v2.2.19 -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Font Awesome v6.5.2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <!-- Google Fonts: Roboto -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #f3f4f6;
+      font-family: 'Roboto', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #22223b;
+    }
+    .fade-in { animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; }}
+    .player-controls {
+      position: absolute;
+      bottom: -50px;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      transition: bottom 0.3s ease;
+      z-index: 25;
+    }
+    .media-frame:hover .player-controls {
+      bottom: 0;
+    }
+    .control-button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .control-button:hover {
+      color: #ff0000;
+    }
+    .progress-container {
+      flex-grow: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      margin: 0 15px;
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #ff0000;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.35s;
+    }
+    /* Improved mobile responsiveness */
+    @media (max-width: 768px) {
+      .category-row {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        margin-bottom: 1rem !important;
+      }
+      .media-frame {
+        width: 100% !important;
+        margin-bottom: 1rem;
+      }
+      .top-frames-container {
+        flex-direction: column !important;
+      }
+      .play-btn {
+        width: 3rem !important;
+        height: 3rem !important;
+      }
+      .play-btn i {
+        font-size: 1rem !important;
+      }
+      .control-button {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+      }
+      .progress-container {
+        margin: 0 8px;
+      }
+      .signup-overlay .text-xl {
+        font-size: 1rem !important;
+      }
+      .player-controls {
+        padding: 0 10px;
+        height: 40px;
+      }
+    }
+    
+    /* Additional mobile improvements */
+    @media (max-width: 480px) {
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+      }
+      .signup-btn {
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      .play-btn {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        border-width: 2px !important;
+      }
+      .signup-overlay .text-center {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen py-4 px-2 text-gray-800">
+
+  <!-- Header: Logo & Name -->
+  <header class="w-full max-w-5xl mx-auto mb-4 px-2">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-3 header-content">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl md:text-4xl text-red-600"><i class="fas fa-film"></i></span>
+        <span class="text-xl md:text-3xl font-bold tracking-tight" style="font-family:'Roboto', Arial, sans-serif;">Amaury Guichon Class</span>
+      </div>
+      <!-- Signup Link (shows only once and applies everywhere) -->
+      <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+         class="rounded-lg px-4 py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-base md:text-lg w-full md:w-auto text-center signup-btn">
+        <i class="fas fa-user-plus mr-2"></i>Free Sign Up Here
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Structure -->
+  <main class="w-full max-w-5xl mx-auto">
+
+    <!-- Top Frame Section (like large hero/content section) -->
+    <div class="w-full flex flex-col md:flex-row md:gap-6 gap-4 mb-6 items-stretch top-frames-container">
+      <div class="w-full md:flex-1 flex flex-col justify-center items-center mb-4 md:mb-0">
+        <div class="media-frame shadow-xl rounded-xl bg-black overflow-hidden relative w-full aspect-w-16 aspect-h-9 min-h-[160px]" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full" style="height:100%;">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-xl" style="display: block;"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-xl" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-xl"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline
+                   webkit-playsinline
+                   crossorigin="anonymous">
+              <source src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhAq8Wn_5NdjGHduUqxDThs9LNLqQvIp5JUvC_QailznLafPRQRB8A-IJEvzYV0jORPv1WN-3SBGxRkyq5T85BdJH5UqPyEX0q6Xhkc0MStzQW7TcnLiSXW5byj5P62KGaY0bQsEemDKlxEhwRV5Kf5x0oXVuFogMEaRZyhMmvR4lwFpp9lQV_rzhZy5zE/s320/hq720.jpg" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-12 h-12 md:w-16 md:h-16 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-lg md:text-2xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-8 w-8 md:h-10 md:w-10 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-2 md:space-y-3 px-2">
+                <div class="text-white text-base md:text-xl font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-4 md:px-6 py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-sm md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control">
+                  <i class="fas fa-play"></i>
+                </button>
+                <button class="control-button volume-control">
+                  <i class="fas fa-volume-up"></i>
+                </button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control">
+                  <i class="fas fa-cog"></i>
+                </button>
+                <button class="control-button fullscreen-control">
+                  <i class="fas fa-expand"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Center frame (highlighted as 'frame 1' in your sketch) -->
+      <div class="w-full md:flex-[2] flex flex-col justify-center items-center mb-4 md:mb-0">
+        <div class="media-frame shadow-xl rounded-xl bg-black overflow-hidden relative w-full aspect-w-16 aspect-h-9 min-h-[160px]" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full" style="height:100%;">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-xl" style="display: block;"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-xl" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-xl"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline
+                   webkit-playsinline
+                   crossorigin="anonymous">
+              <source src="https://www.mashed.com/img/gallery/why-school-of-chocolates-amaury-and-fiona-guichon-are-the-perfect-couple/amaury-and-fiona-guichon-had-a-covid-wedding-1638718312.jpg" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-12 h-12 md:w-16 md:h-16 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-lg md:text-2xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-8 w-8 md:h-10 md:w-10 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-2 md:space-y-3 px-2">
+                <div class="text-white text-base md:text-xl font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-4 md:px-6 py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-sm md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control">
+                  <i class="fas fa-play"></i>
+                </button>
+                <button class="control-button volume-control">
+                  <i class="fas fa-volume-up"></i>
+                </button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control">
+                  <i class="fas fa-cog"></i>
+                </button>
+                <button class="control-button fullscreen-control">
+                  <i class="fas fa-expand"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Right frame -->
+      <div class="w-full md:flex-1 flex flex-col justify-center items-center">
+        <div class="media-frame shadow-xl rounded-xl bg-black overflow-hidden relative w-full aspect-w-16 aspect-h-9 min-h-[160px]" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full" style="height:100%;">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-xl" style="display: block;"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-xl" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-xl"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline
+                   webkit-playsinline
+                   crossorigin="anonymous">
+              <!-- Changed this source to be different from the second frame -->
+              <source src="https://cdn.broadsheet.com.au/cache/7e/4a/7e4a899f98983160bced98fb99d02934.webp" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-12 h-12 md:w-16 md:h-16 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-lg md:text-2xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-8 w-8 md:h-10 md:w-10 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-2 md:space-y-3 px-2">
+                <div class="text-white text-base md:text-xl font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-4 md:px-6 py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-sm md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control">
+                  <i class="fas fa-play"></i>
+                </button>
+                <button class="control-button volume-control">
+                  <i class="fas fa-volume-up"></i>
+                </button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control">
+                  <i class="fas fa-cog"></i>
+                </button>
+                <button class="control-button fullscreen-control">
+                  <i class="fas fa-expand"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Section 1 -->
+    <div class="w-full mb-6">
+      <div class="text-lg font-bold mb-3 text-red-800 px-1">Amaury Guichon Creativity</div>
+      <div class="flex flex-col md:flex-row gap-4 md:gap-5 mb-4 category-row">
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <source src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjGOS7LJ8OBB4-V1EWd3JIcrN7ZELsjdTQOaO1mnFjSuglPG1PpdGNzIqJaRpvZ80h7DvQNl5hhJcV15fsDjsM9lsGZ-fCaT73j6_2BbcsqrFrDK7fbTZxkRZMbbRN4Y5qgLpjJet_jjqDjRcf2uRYJlman-ZKIY6YIYg4JheuPB3OeBbzBdbwCF6gTePg/s320/invite-amaury-guichon-le-steven-spielberg-de-la-patisserie-9dca75-9aad04-0@1x.jpg" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <source src="https://www.mashed.com/img/gallery/amaury-guichons-elegant-wedding-cake-made-tiktoks-jaw-drop/amaury-guichon-makes-wedding-cake-of-tiktoks-dreams-1675620581.jpg" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <source src="https://m.media-amazon.com/images/M/MV5BMGZlZWZlM2ItYzIyNC00Y2VjLTkxZWEtMDY1YTJjZWQyNGQyXkEyXkFqcGdeQWxiaWFtb250._V1_QL75_UX500_CR0,0,500,281_.jpg" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col md:flex-row gap-4 md:gap-5 mb-4 category-row">
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <source src="https://www.mashed.com/img/gallery/amaury-guichons-chocolate-purse-has-instagram-amazed/l-intro-1661849369.jpg" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <!-- Changed this source to be different from other videos -->
+              <source src="https://images.squarespace-cdn.com/content/v1/53019940e4b01cb1fb2f953f/e5dee281-fbeb-42f0-85bb-6cb658b0abe8/DessertMasters_Comp_1920x1080px_V3.png" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <!-- Changed this source to be different from other videos -->
+              <source src="https://nyweekly.com/wp-content/uploads/elementor/thumbs/Amaury-Guichon-and-His-Girlfriend-Ashley-Rossis-Story--qtdo9pxw50nku4z5nmx3rvpsdw3iowz1cv9lbu790w.png" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Section 2 -->
+    <div class="w-full mb-6">
+      <div class="text-lg font-bold mb-3 text-red-800 px-1">Amaury Guichon With Her</div>
+      <div class="flex flex-col md:flex-row gap-4 md:gap-5 category-row">
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <!-- Changed this source to be different from other videos -->
+              <source src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhAq8Wn_5NdjGHduUqxDThs9LNLqQvIp5JUvC_QailznLafPRQRB8A-IJEvzYV0jORPv1WN-3SBGxRkyq5T85BdJH5UqPyEX0q6Xhkc0MStzQW7TcnLiSXW5byj5P62KGaY0bQsEemDKlxEhwRV5Kf5x0oXVuFogMEaRZyhMmvR4lwFpp9lQV_rzhZy5zE/s320/hq720.jpg" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <!-- Changed this source to be different from other videos -->
+              <source src="https://cdn.broadsheet.com.au/cache/7e/4a/7e4a899f98983160bced98fb99d02934.webp" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-frame shadow-lg rounded-lg bg-black overflow-hidden relative w-full md:w-1/3 aspect-w-16 aspect-h-9" style="aspect-ratio:16/9;">
+          <div class="player-aspect relative w-full h-full">
+            <canvas class="thumbnail-canvas absolute top-0 left-0 w-full h-full object-cover z-0 bg-black rounded-lg"></canvas>
+            <img class="image-display absolute top-0 left-0 w-full h-full object-contain z-5 rounded-lg" style="display: none;" alt="Media content"/>
+            <video class="video absolute top-0 left-0 w-full h-full object-contain z-10 rounded-lg"
+                   preload="auto"
+                   style="display:none;"
+                   playsinline webkit-playsinline crossorigin="anonymous">
+              <!-- Changed this source to be different from other videos -->
+              <source src="https://images.squarespace-cdn.com/content/v1/53019940e4b01cb1fb2f953f/e5dee281-fbeb-42f0-85bb-6cb658b0abe8/DessertMasters_Comp_1920x1080px_V3.png" type="video/mp4">
+            </video>
+            <button class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-10 h-10 md:w-12 md:h-12 hover:bg-opacity-70 transition-all focus:outline-none border-2 md:border-4 border-white shadow-lg">
+              <i class="fas fa-play text-white text-base md:text-xl"></i>
+            </button>
+            <div class="loading-overlay absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40" style="display:none;">
+              <svg class="animate-spin h-6 w-6 md:h-7 md:w-7 text-red-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div class="signup-overlay absolute inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-40 fade-in" style="display:none;">
+              <div class="text-center space-y-1 md:space-y-2 px-2">
+                <div class="text-white text-sm md:text-lg font-bold mb-1 md:mb-2 flex items-center justify-center">
+                  <i class="fas fa-lock mr-1 md:mr-2"></i>
+                  Please create free account to watch full video
+                </div>
+                <a href="https://drankclosed.com/wm1dh0yng?key=476751229acecea5f07dfde45a0b82f5" target="_blank"
+                  class="inline-block rounded-lg px-3 md:px-6 py-1 md:py-2 bg-red-600 bg-opacity-80 text-white font-semibold shadow hover:bg-red-700 transition-all text-xs md:text-base"
+                  style="backdrop-filter: blur(1px);">
+                  Free Sign Up Here
+                </a>
+              </div>
+            </div>
+            <img class="hidden-thumbnail-fallback" style="display: none;" alt="Thumbnail fallback"/>
+            <div class="player-controls">
+              <div class="controls-left flex items-center">
+                <button class="control-button play-control"><i class="fas fa-play"></i></button>
+                <button class="control-button volume-control"><i class="fas fa-volume-up"></i></button>
+              </div>
+              <div class="progress-container"><div class="progress-bar"></div></div>
+              <div class="controls-right flex items-center">
+                <button class="control-button settings-control"><i class="fas fa-cog"></i></button>
+                <button class="control-button fullscreen-control"><i class="fas fa-expand"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </main>
+
+  <!-- Banner Ad Container (shown once) -->
+  <div class="w-full max-w-2xl mx-auto mt-4 mb-6 flex justify-center">
+    <script type="text/javascript">
+      atOptions = {'key':'a16f6c5c2f97f550337197a3f2b77312','format':'iframe','height':90,'width':728,'params':{}};
+    </script>
+    <script type="text/javascript" src="//refreshmentwisertowards.com/a16f6c5c2f97f550337197a3f2b77312/invoke.js"></script>
+  </div>
+
+  <!-- Video Player Script for all frames (applies functionality to each media frame, individually) -->
+  <script>
+    // Helper function to manage each player
+    function isImageURL(url) {
+      return /\.(jpg|jpeg|png|gif|bmp|webp|svg|avif)$/i.test(url);
+    }
+    function setupMediaFrame(frame) {
+      const video      = frame.querySelector('.video');
+      const aspectDiv  = frame.querySelector('.player-aspect');
+      const thumbnail  = frame.querySelector('.thumbnail-canvas');
+      const playBtn    = frame.querySelector('.play-btn');
+      const loading    = frame.querySelector('.loading-overlay');
+      const signup     = frame.querySelector('.signup-overlay');
+      const fallbackImg= frame.querySelector('.hidden-thumbnail-fallback');
+      const imageDisplay = frame.querySelector('.image-display');
+      // Controls
+      const playControl = frame.querySelector('.play-control');
+      const volumeControl = frame.querySelector('.volume-control');
+      const settingsControl = frame.querySelector('.settings-control');
+      const fullscreenControl = frame.querySelector('.fullscreen-control');
+      const progressBar = frame.querySelector('.progress-bar');
+      // Get the source to identify if it's image/video
+      const srcTag = video.querySelector('source');
+      const mediaSrc = srcTag ? srcTag.getAttribute('src') : "";
+      const isImage = isImageURL(mediaSrc);
+
+      // Handle image or video setup
+      if (isImage) {
+        imageDisplay.src = mediaSrc;
+        imageDisplay.style.display = 'block';
+        imageDisplay.onload = function() {
+          setAspectRatio(this.naturalWidth, this.naturalHeight);
+          thumbnail.style.display = 'none';
+        };
+        video.style.display = 'none';
+      } else {
+        video.load();
+      }
+      function setAspectRatio(width, height) {
+        if (width && height) {
+          aspectDiv.style.paddingBottom = ((height / width) * 100) + "%";
+        } else {
+          aspectDiv.style.paddingBottom = "56.25%";
+        }
+      }
+      function drawFirstFrame() {
+        if (isImage) return;
+        thumbnail.style.display = 'none';
+        fallbackImg.style.display = 'none';
+        function capture() {
+          try {
+            if (!video) return;
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+            if (vw === 0 || vh === 0) return;
+            setAspectRatio(vw, vh);
+            thumbnail.width = vw;
+            thumbnail.height = vh;
+            const ctx = thumbnail.getContext('2d');
+            ctx.clearRect(0,0,vw,vh);
+            ctx.drawImage(video, 0, 0, vw, vh);
+            thumbnail.style.display = 'block';
+          } catch (e) {
+            thumbnail.style.display = 'none';
+            fallbackImg.style.display = 'none';
+          }
+          video.currentTime = 0;
+        }
+        function onSeekedOnce() {
+          video.removeEventListener('seeked', onSeekedOnce); setTimeout(capture, 50);
+        }
+        video.addEventListener('seeked', onSeekedOnce);
+        try { video.currentTime = 0.1; } catch(e){}
+      }
+      if (video) {
+        video.addEventListener('loadedmetadata', function() {
+          if (isImage) return;
+          setAspectRatio(video.videoWidth, video.videoHeight);
+          drawFirstFrame();
+        });
+      }
+      playBtn.addEventListener('click', function() {
+        playBtn.style.display = 'none';
+        loading.style.display = 'flex';
+        setTimeout(() => {
+          loading.style.display = 'none';
+          signup.style.display = 'flex';
+        }, 1000);
+      });
+      playControl.addEventListener('click', function() {
+        playBtn.click();
+      });
+      // On startup -- show only thumbnail and play
+      signup.style.display = 'none';
+      loading.style.display = 'none';
+      playBtn.style.display = 'flex';
+      if (!isImage) {
+        video.style.display = 'none';
+        imageDisplay.style.display = 'none';
+      } else {
+        thumbnail.style.display = 'none';
+        video.style.display = 'none';
+      }
+      // Set initial progress bar (just for effect)
+      progressBar.style.width = '0%';
+      // Fake progress bar animation after play/click
+      let fakeProgress = 0;
+      setInterval(() => {
+        if (signup.style.display === 'flex') {
+          fakeProgress = Math.min(fakeProgress + 0.5, 30);
+          progressBar.style.width = fakeProgress + '%';
+        }
+      }, 1000);
+      // Responsive aspect
+      window.addEventListener('resize', function() {
+        if (isImage && imageDisplay.naturalWidth > 0) {
+          setAspectRatio(imageDisplay.naturalWidth, imageDisplay.naturalHeight);
+        } else if (!isImage && video.videoWidth > 0) {
+          setAspectRatio(video.videoWidth, video.videoHeight);
+        }
+      });
+    }
+    // Set up all frames on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.media-frame').forEach(setupMediaFrame);
+    });
+  </script>
+</body>
+</html>
